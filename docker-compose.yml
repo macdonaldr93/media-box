@@ -152,6 +152,7 @@ services:
       - ${CONFIG_ROOT}/plex:/config
       - ${MEDIA_ROOT}/movies:/movies
       - ${MEDIA_ROOT}/tv:/tv
+      - ${MEDIA_ROOT}/youtube:/youtube
     ports:
       - 32400:32400
 
@@ -181,7 +182,34 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
     volumes:
+      - /etc/localtime:/etc/localtime:ro
       - ${MUSIC_ROOT}:/data
       - ${CONFIG_ROOT}/lidarr:/config
+      - ${DOWNLOADS_ROOT}:/downloads
     ports:
       - 8686:8686
+  
+  # YouTube
+  youtube:
+    container_name: youtube
+    image: tzahi12345/youtubedl-material:latest
+    restart: unless-stopped
+    network_mode: docker_default
+    environment:
+      - UID=${PUID}
+      - GID=${PGID}
+      - TZ=${TZ}
+      - USER=rtmacdonald
+      - ytdl_default_downloader=yt-dlp
+      - ytdl_use_local_db=true
+      - ytdl_port=9998
+      - write_ytdl_config=true
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ${MEDIA_ROOT}/youtube/users:/app/users:rw
+      - ${MEDIA_ROOT}/youtube/subscriptions:/app/subscriptions:rw
+      - ${MUSIC_ROOT}/youtube:/app/audio:rw
+      - ${MEDIA_ROOT}/youtube/video:/app/video:rw
+      - ${CONFIG_ROOT}/youtubedl:/app/appdata:rw
+    ports:
+      - 9998:9998/tcp
